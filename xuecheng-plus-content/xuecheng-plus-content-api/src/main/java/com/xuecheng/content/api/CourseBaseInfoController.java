@@ -26,7 +26,7 @@ import java.util.List;
 public class CourseBaseInfoController {
 
     @ApiOperation("课程查询接口")
-    @PostMapping("/course/list")
+    @PostMapping ("/course/list")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required=false) QueryCourseParamsDto queryCourseParamsDto) {
 
 
@@ -37,6 +37,5 @@ public class CourseBaseInfoController {
         courseBases.add(courseBase);
         PageResult pageResult = new PageResult<CourseBase>(courseBases,10,1,10);
         return pageResult;
-
     }
 }
