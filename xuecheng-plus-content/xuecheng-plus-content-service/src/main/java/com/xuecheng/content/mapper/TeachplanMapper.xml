@@ -97,4 +97,16 @@
         order by one.orderby,
                  two.orderby
     </select>
+
+    <select id="getSecondCount" resultType="java.lang.Integer" parameterType="long">
+        select count(*)
+        from teachplan
+        where parentid = #{courseId}
+    </select>
+
+    <select id="selectMaxOrdeby" resultType="java.lang.Integer"  parameterType="long">
+        select max(orderby)
+        from teachplan
+        where course_id= #{courseId} and parentid = #{parentId}
+    </select>
 </mapper>

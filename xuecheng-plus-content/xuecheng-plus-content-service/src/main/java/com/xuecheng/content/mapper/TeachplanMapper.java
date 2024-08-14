@@ -3,6 +3,7 @@ package com.xuecheng.content.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,5 +17,8 @@ import java.util.List;
 public interface TeachplanMapper extends BaseMapper<Teachplan> {
 
     public List<TeachplanDto> selectTreeNodes(long courseId);
+
+    public Integer getSecondCount(long courseId);
+    public Integer selectMaxOrdeby(@Param("courseId") long courseId,@Param("parentId") long parentId);
 
 }

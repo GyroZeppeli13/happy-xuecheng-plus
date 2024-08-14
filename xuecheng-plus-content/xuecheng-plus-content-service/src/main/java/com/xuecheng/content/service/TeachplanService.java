@@ -4,6 +4,8 @@ import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.model.dto.*;
 import com.xuecheng.content.model.po.CourseBase;
+import com.xuecheng.content.model.po.TeachplanMedia;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -33,4 +35,27 @@ public interface TeachplanService {
      */
     public void saveTeachplan(SaveTeachplanDto teachplanDto);
 
+    /**
+     * 删除课程计划
+     * @param id
+     */
+    public void deleteTeachplan(Long id);
+
+    /**
+     * 修改课程计划位置
+     * @param moveType
+     * @param id
+     */
+    public void moveTeachplan(@PathVariable String moveType, @PathVariable Long id);
+
+    /**
+     * @description 教学计划绑定媒资
+     * @param bindTeachplanMediaDto
+     * @return com.xuecheng.content.model.po.TeachplanMedia
+     * @author Mr.M
+     * @date 2022/9/14 22:20
+     */
+    public TeachplanMedia associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto);
+
+    public void unbindVideo(String teachPlanId,String mediaId);
 }

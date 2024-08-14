@@ -33,6 +33,15 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseBody
+    @ExceptionHandler(XuechengPlusWithCodeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public RestErrorResponse customWithCodeException(XuechengPlusWithCodeException e) {
+        log.error("【系统异常】{}",e.getErrCode(),e.getErrMessage(),e);
+        return new RestErrorCodeResponse(e.getErrCode(), e.getErrMessage());
+
+    }
+
+    @ResponseBody
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public RestErrorResponse methodArgumentNotValidException(MethodArgumentNotValidException e) {

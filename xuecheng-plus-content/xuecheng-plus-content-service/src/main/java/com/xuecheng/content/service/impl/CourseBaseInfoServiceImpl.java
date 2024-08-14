@@ -8,14 +8,14 @@ import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CourseCategoryMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
-import com.xuecheng.content.model.dto.AddCourseDto;
-import com.xuecheng.content.model.dto.CourseBaseInfoDto;
-import com.xuecheng.content.model.dto.EditCourseDto;
-import com.xuecheng.content.model.dto.QueryCourseParamsDto;
+import com.xuecheng.content.mapper.TeachplanMapper;
+import com.xuecheng.content.model.dto.*;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseCategory;
 import com.xuecheng.content.model.po.CourseMarket;
 import com.xuecheng.content.service.CourseBaseInfoService;
+import com.xuecheng.content.service.CourseTeacherService;
+import com.xuecheng.content.service.TeachplanService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseBaseInfoServiceImpl  implements CourseBaseInfoService {
@@ -37,6 +38,12 @@ public class CourseBaseInfoServiceImpl  implements CourseBaseInfoService {
 
     @Autowired
     CourseCategoryMapper courseCategoryMapper;
+
+    @Autowired
+    TeachplanService teachplanService;
+
+    @Autowired
+    CourseTeacherService courseTeacherService;
 
     @Override
     public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
@@ -212,5 +219,41 @@ public class CourseBaseInfoServiceImpl  implements CourseBaseInfoService {
         CourseBaseInfoDto courseBaseInfo = this.getCourseBaseInfo(courseId);
         return courseBaseInfo;
 
+    }
+
+    @Transactional
+    @Override
+    public void deleteCourseInfo(Long companyId, Long courseId) {
+        // 获取课程
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        Long courseBaseCompanyId = courseBase.getCompanyId();
+
+        // 只有机构才可以删除本机构的课程
+        if (!companyId.equals(courseBaseCompanyId)) {
+            XueChengPlusException.cast("不能删除非本机构的课程");
+        }
+
+        // 课程审核状态为未提交时才可删除
+        if (!courseBase.getAuditStatus().equals("202002")) {
+            XueChengPlusException.cast("课程的审核状态为已提交，删除失败");
+        }
+        // 删除课程需要删除课程相关的基本信息、营销信息、课程计划、课程教师信息。
+        // 删除课程基本信息
+        courseBaseMapper.deleteById(courseId);
+        // 删除课程营销信息
+        courseMarketMapper.deleteById(courseId);
+        // 删除课程计划
+        List<TeachplanDto> teachPlans = teachplanService.findTeachplanTree(courseId);
+        for (TeachplanDto teachPlan : teachPlans) {
+            for (TeachplanDto teachPlanTreeNode : teachPlan.getTeachPlanTreeNodes()) {
+                teachplanService.deleteTeachplan(teachPlanTreeNode.getId());
+            }
+            teachplanService.deleteTeachplan(teachPlan.getId());
+        }
+        // 删除课程教师信息
+        List<CourseTeacherDto> courseTeacherDtos = courseTeacherService.listTeacher(courseId);
+        List<Long> courseTeacherIds = courseTeacherDtos.stream()
+                .map(CourseTeacherDto::getId).collect(Collectors.toList());
+        courseTeacherService.deleteBatchByIds(companyId,courseId,courseTeacherIds);
     }
 }
